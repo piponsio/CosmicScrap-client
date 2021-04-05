@@ -14,6 +14,8 @@ class Element{
 	_y;
 	_center = {};
 	_cursor;
+
+	_is_mouse_over = false;
 	_isFocus;
 
 	_click_flag = false;
@@ -47,9 +49,11 @@ class Element{
 		if(params["y"] != undefined) this._y = params["y"];
 		else this._y = 0;
 	}
+
 	setView(view){
 		if(view != undefined) this._view.push(view);
 	}
+
 	loadMedia(){
 		if(this._image_src != undefined){
 			this._image = new Image();
@@ -73,6 +77,7 @@ class Element{
 			}
 		}
 	}
+	
 	doInGui(callback){
 		this.doInAllViews(function(me,ctx, gui){
 			callback(gui);
@@ -98,16 +103,16 @@ class Element{
 		return result;
 	}
 
-	isFocus(callback){
-		if(LGuiJs._mouse.focus != undefined){	
-			if(LGuiJs._mouse.focus.x > this._x && LGuiJs._mouse.focus.x < this._x + this._width){
-				if(LGuiJs._mouse.focus.y > this._y && LGuiJs._mouse.focus.y < this._y + this._height){
-					this._isFocus = true;
+	isMouseOver(){
+		if(LGuiJs._mouse.position != undefined){	
+			if(LGuiJs._mouse.position.x > this._x && LGuiJs._mouse.position.x < this._x + this._width){
+				if(LGuiJs._mouse.position.y > this._y && LGuiJs._mouse.position.y < this._y + this._height){
+					this._is_mouse_over = true;
 				}
-				else this._isFocus = false;
+				else this._is_mouse_over = false;
 			}
-			else this._isFocus = false;
-			if(callback != undefined) callback(this);
+			else this._is_mouse_over = false;
+			//if(callback != undefined) callback(this);
 		}
 		return this._isFocus;
 	}
@@ -219,7 +224,8 @@ class Text extends Element{
 		});
 	}
 	getValue(){
-		return this._value;
+		var result = (this._value != undefined) ? this._value : ""; 
+		return result;
 	}
 }
 
@@ -264,7 +270,7 @@ class Input extends Text{
 
 	frameLoop(){
 		super.frameLoop();
-		this.isFocus();
+		this.isMouseOver();
 	
 		this.doInAllViews(function(me, ctx){
 			ctx.save();

@@ -44,8 +44,8 @@ class View{
 
 
 			for(var i = 0; i < this._elementList.length; i++){
-				this._cursor.text = this._cursor.text || (this._elementList[i].instance._cursor == "text" && this._elementList[i].instance._isFocus);
-				this._cursor.pointer = this._cursor.pointer || (this._elementList[i].instance._cursor == "pointer" && this._elementList[i].instance._isFocus);
+				this._cursor.text = this._cursor.text || (this._elementList[i].instance._cursor == "text" && this._elementList[i].instance._is_mouse_over);
+				this._cursor.pointer = this._cursor.pointer || (this._elementList[i].instance._cursor == "pointer" && this._elementList[i].instance._is_mouse_over);
 				
 				this._elementList[i].instance.frameLoop();
 			}

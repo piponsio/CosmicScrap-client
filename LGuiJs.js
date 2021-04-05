@@ -14,10 +14,10 @@ class LGuiJs{
 	static _mouse = {
 		click: {x_: undefined, y: undefined},
 		last_click: {x: undefined, y: undefined},
-		focus: {x: undefined, y:undefined}
+		position: {x: undefined, y:undefined}
 	};
 
-	_ping = 0;
+	_ping = "??";
 
 	_view = null;
 
@@ -28,36 +28,21 @@ class LGuiJs{
 
 		if(callback != undefined) callback(this);
 
-		//console.log("CONSTRUCTOR DE GUI");
-		//LGuiJs._instances.set(id, this);
 		LGuiJs._instances[id] = this;
-		//if(this._fps == undefined) this._fps = 60;
-		//console.log("FPs: " + this._fps);
 
 		this._canvas = document.getElementById(id);
 		this._canvas.width = width;
 		this._canvas.height = height;
 		
 		this._context = this._canvas.getContext('2d');
-		//console.log(view);
-		//this._view = View.getView(view);
 
   		this.keyboardEvents();
   		this.mouseEvents();
 
   		this.loadMedia(function(){
-  		//	console.log("callback de loadMedia de LGuiJS");
-			
-			//console.log(View.getViews());
-			//console.log(View.getViews()["Home"]);
-//			for(var key in View.getViews()){
 			for(var key in View._viewList){
-			//	console.log(View.getView(key)._id);
 				View.getView(key).loadMedia();
 			}
-  			//if(View.getViews() != undefined) View.getViews().forEach(function(value){ value.loadMedia();});
-		
-  			//for(var i = 0; i < View.getViews().length; i++) Views.getViews()[i].loadMedia();
   		});
 
 		var body = document.getElementsByTagName("BODY")[0];
@@ -67,10 +52,8 @@ class LGuiJs{
 
 	keyboardEvents(){ 
 		document.addEventListener("keydown",function(e){
-
 			var key;
-			//if(LGuiJs._keyboard[e.keyCode] != true) LGuiJs._keyboard_press.push(e.keyCode);
-//			str.charCodeAt(0)
+
 			if(e.key.length == 1 ){
 				LGuiJs._keyboard[e.key.charCodeAt(0)] = true;
 				key = e.key
@@ -79,26 +62,16 @@ class LGuiJs{
 				if(e.key == "Backspace") key = e.key; 
 			}
 
-			//console.log(key);
-
-			/*
-			LGuiJs._keyboard[e.keyCode] = true;
-			console.log(e.key.length);
-			*/
 			if(key != undefined) LGuiJs._last_key = {char: key, time: Date.now()};
-		//	console.log(LGuiJs._last_key);
 		});
 		document.addEventListener("keyup",function(e){
 			var key = e.key;
-			//if(LGuiJs._keyboard[e.keyCode] != true) LGuiJs._keyboard_press.push(e.keyCode);
-//			str.charCodeAt(0)
 			if(key.length == 1 ){
 				LGuiJs._keyboard[key.charCodeAt(0)] = false;	
 			}
 			else{
 
 			}
-			//LGuiJs._keyboard[e.keyCode] = false;
 		});
 	}
 
@@ -112,8 +85,8 @@ class LGuiJs{
 			LGuiJs._mouse.click.y = e.offsetY;
 		});
 		this._canvas.addEventListener("mousemove", function(e){
-			LGuiJs._mouse.focus.x = e.clientX;
-			LGuiJs._mouse.focus.y = e.clientY;
+			LGuiJs._mouse.position.x = e.clientX;
+			LGuiJs._mouse.position.y = e.clientY;
 		});
 	}
 
@@ -153,48 +126,42 @@ class LGuiJs{
 		http.onReady(callback);
 		this._ping = http._ms;
 	}
+
+	getPing(){
+		var result = (this._ping != undefined) ? this._ping : "??";
+		return result;
+	}
 }
 
 class httpRequest{
 	_http;
 	_method;
-	_url;
-	_callback;
+//	_url;
+//	_callback;
 	_last_data_send;
 	_ms;
 	static start(method, url){
 		var instance = new httpRequest();
+		instance._method = method;
 		instance._http = new XMLHttpRequest();
 		instance._http.open(method, url);
 		instance._last_data_send = Date.now();
-		instance._callback;
+	//	instance._callback;
 		instance._http.send();
 		return instance;
 	}
 	onReady(callback){
-		this._http.onreadystatechange = function(){
-			this._ms = Date.now() - this._last_data_send;
-	//			callback(instance._http, instance._ms);
-			callback(this);
+		var http_request = this;
+		var aux = function(a){
+				a._ms = Date.now() - a._last_data_send;
+				callback(a._http);
 		}
-		return instance;
+		this._http.onreadystatechange = aux(http_request);
 	}
 
 	constructor(){ //Private ??
 
 	}
-	/*
-	constructor(method, url){
-		this._http = new XMLHttpRequest();
-		this._http.open(method, url);
-		this._last_data_send = Date.now();
-		this._http.send();
-	}
-	*/
-	onReady(){
-
-	}
-
 }
 
 console.log("LazySoft GUI for JavasScript");
