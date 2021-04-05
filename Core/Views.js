@@ -3,7 +3,6 @@ class View{
 
 	_id;
 	_elementList = [];
-	//_elementTextCursor = [];
 	_controller = null;
 	_cursor = {
 		text: false,
@@ -21,23 +20,35 @@ class View{
 
 
 	loadMedia(){
-		for(var i = 0; i < this._elementList.length; i++) {
-			this._elementList[i].instance.loadMedia();
-		}
+		for(var i = 0; i < this._elementList.length; i++) this._elementList[i].instance.loadMedia();
 	}
 
 	frameLoop(){
-//		console.log("FrameLoop de View: "+this._id);
-//		console.log(this._elementList.length + " Elementos");
 		if(this._LGuiJs != null){
-//			console.log(this._LGuiJs);
+
+			for(var i = this._elementList.length-1; i >= 0; i--){
+				if(this._elementList[i].instance.isClick()){
+					for(var j = 0; j < this._elementList[i].instance._click_event.length; j++){
+						this._elementList[i].instance._click_event[j].apply(this, [this._elementList[i].instance]);
+					}
+					for(var j = 0; j < this._elementList.length; j++){
+						if(this._elementList[j] != this._elementList[i]) this._elementList[j].instance._is_last_click = false;
+					}
+					LGuiJs._mouse.click.x = undefined;
+					LGuiJs._mouse.click.y = undefined;
+					i = -1;
+				}
+			}
+		
+			//Crear metodo para disparar los eventos, todos deberían ser parecidos
+
+
 			for(var i = 0; i < this._elementList.length; i++){
 				this._cursor.text = this._cursor.text || (this._elementList[i].instance._cursor == "text" && this._elementList[i].instance._isFocus);
 				this._cursor.pointer = this._cursor.pointer || (this._elementList[i].instance._cursor == "pointer" && this._elementList[i].instance._isFocus);
 				
 				this._elementList[i].instance.frameLoop();
 			}
-	//		console.log(this._cursor.pointer);
 			if(this._cursor.text){
 				if(this._LGuiJs != null) this._LGuiJs._canvas.style.cursor = "text";
 				this._cursor.text = false;
@@ -45,6 +56,7 @@ class View{
 			else if(this._cursor.pointer){
 				if(this._LGuiJs != null) this._LGuiJs._canvas.style.cursor = "pointer";
 				this._cursor.pointer = false;
+				//Hacer funcion para cada tipo de cursor
 			}
 			else this._LGuiJs._canvas.style.cursor = "default";	
 		}
@@ -67,7 +79,7 @@ class View{
 		if(element != undefined){
 			this._elementList.push({"instance": element, "z-index": index});
 			this._elementList.sort((a,b) => (a["z-index"] > b["z-index"]) ? (1) : (-1) );
-			element._view.push(this);
+			element.setView(this);
 		}
 	}
 }

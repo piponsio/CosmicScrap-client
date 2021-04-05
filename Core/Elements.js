@@ -1,5 +1,6 @@
 class Element{
 	_view = [];
+	ClassName;
 	_id;
 	_callbackFrameLoop;
 	_width;
@@ -14,13 +15,17 @@ class Element{
 	_center = {};
 	_cursor;
 	_isFocus;
-	_isClicked;
+
+	_click_flag = false;
+	_is_last_click = false;
+	_click_event = [];
 
 	static _elementList = [];
 
 	constructor(id, params = array(), callback){ 
+		this.ClassName = "Element";
 		this._id = id;
-		this._view.push(params["view"]);
+		this.setView(params["view"]);
 		this._callbackFrameLoop = callback;
 		Element._elementList[this._id] = this;
 
@@ -42,7 +47,9 @@ class Element{
 		if(params["y"] != undefined) this._y = params["y"];
 		else this._y = 0;
 	}
-
+	setView(view){
+		if(view != undefined) this._view.push(view);
+	}
 	loadMedia(){
 		if(this._image_src != undefined){
 			this._image = new Image();
@@ -50,26 +57,8 @@ class Element{
 		}
 	}
 
-	frameLoop(callback = function(){}){
-
-		callback();
-		this.doInAllViews(function(me, ctx){
-			if(me._display){
-				if(me._image != undefined){
-					if(me._width == undefined) me._width = me._image.width;
-					if(me._height == undefined) me._height = me._image.height;
-					ctx.drawImage(me._image, me._x, me._y, me._width, me._height);
-					ctx.save();
-				}
-				else if(me._background_color != undefined){
-					ctx.save();
-					ctx.fillStyle = me._background_color;
-//					console.log()
-					ctx.fillRect(me._x, me._y, me._width, me._height); 
-					ctx.restore();
-				}
-			}
-		});
+	frameLoop(){
+		if(this._callbackFrameLoop != undefined) this._callbackFrameLoop(this);
 	}
 
 	static getElement(name = ""){
@@ -84,7 +73,14 @@ class Element{
 			}
 		}
 	}
-
+	doInGui(callback){
+		this.doInAllViews(function(me,ctx, gui){
+			callback(gui);
+		});
+		//Ejecutar callback en solo una vez por gui ?,
+		//es probable que el elemento esté en mas de una vista
+		// y que estas dos vistas compartan gui
+	}
 	center(){
 		if(this._x != undefined && this._y != undefined && this._width != undefined && this._height != undefined){
 			this._center = {x: this._x + (this._width/2), y: this._y + (this._height/2)};
@@ -103,35 +99,81 @@ class Element{
 	}
 
 	isFocus(callback){
-		if(LGuiJs._mouse.posX > this._x && LGuiJs._mouse.posX < this._x + this._width){
-			if(LGuiJs._mouse.posY > this._y && LGuiJs._mouse.posY < this._y + this._height){
-				this._isFocus = true;
+		if(LGuiJs._mouse.focus != undefined){	
+			if(LGuiJs._mouse.focus.x > this._x && LGuiJs._mouse.focus.x < this._x + this._width){
+				if(LGuiJs._mouse.focus.y > this._y && LGuiJs._mouse.focus.y < this._y + this._height){
+					this._isFocus = true;
+				}
+				else this._isFocus = false;
 			}
 			else this._isFocus = false;
+			if(callback != undefined) callback(this);
 		}
-		else this._isFocus = false;
-		if(callback != undefined) callback(this);
 		return this._isFocus;
 	}
 
-	isClicked(callback){
-		if(LGuiJs._mouse.x > this._x && LGuiJs._mouse.x < this._x + this._width){
-			if(LGuiJs._mouse.y > this._y && LGuiJs._mouse.y < this._y + this._height){
-				this._isClicked = true;
-			}
-			else this._isClicked = false;
-		}
-		else this._isClicked = false;
-		if(callback != undefined) callback(this);
+	isClick(callback){
+		var result = false;
+		if(LGuiJs._mouse.click != undefined){
+			if(LGuiJs._mouse.click.x > this._x && LGuiJs._mouse.click.x < this._x + this._width){
+				if(LGuiJs._mouse.click.y > this._y && LGuiJs._mouse.click.y < this._y + this._height){
+					if(!this._click_flag){
+						result = true;
+						
+						this._is_last_click = true;
+						this._click_flag = true;
 
-		return this._isClicked;
+						LGuiJs._mouse.last_click.x = LGuiJs._mouse.click.x;
+						LGuiJs._mouse.last_click.y = LGuiJs._mouse.click.y;
+					}
+				}
+				else{
+					this._click_flag = false;
+					this._is_click = false;
+				}
+			}
+			else{
+				this._click_flag = false;
+				this._is_click = false;
+			} 
+				
+		}
+		
+		return result;
+	}
+
+	addEventListener(type, callback){
+		if(type == "click"){
+			this._click_event.push(callback);
+		}
 	}
 }
 
 class Background extends Element{
-	 constructor(id, params = array(), callback){
+	constructor(id, params = array(), callback){
 	 	super(id, params, callback);
-	 }
+		this.ClassName = "Background";
+	}
+	frameLoop(){
+		super.frameLoop();
+		this.doInAllViews(function(me, ctx){
+			if(me._display){
+				if(me._image != undefined){
+					if(me._width == undefined) me._width = me._image.width;
+					if(me._height == undefined) me._height = me._image.height;
+					ctx.drawImage(me._image, me._x, me._y, me._width, me._height);
+					ctx.save();
+				}
+				else if(me._background_color != undefined){
+					ctx.save();
+					ctx.fillStyle = me._background_color;
+//					console.log()
+					ctx.fillRect(me._x, me._y, me._width, me._height); 
+					ctx.restore();
+				}
+			}
+		});
+	}
 }
 
 class Text extends Element{
@@ -144,6 +186,8 @@ class Text extends Element{
 	_value;
 	constructor(id, params = array(), callback){
 	 	super(id, params, callback);
+		this.ClassName = "Text";
+
 	 	this._default_text = params["default-text"];
 	 	if(this._default_text == undefined) this._default_text = "";
 	 	this._text = params["text"];
@@ -156,8 +200,8 @@ class Text extends Element{
 	}
 	
 	frameLoop(){
-		if(this._callbackFrameLoop != undefined) this._callbackFrameLoop(this);	
-		this.drawText(this._x, this._y, this._text_align, this._text);
+		super.frameLoop();
+		if(this._text != undefined && this.ClassName == "Text") this.drawText(this._x, this._y, this._text_align, this._text);
 	}
 
 	setText(text){
@@ -173,6 +217,9 @@ class Text extends Element{
 			ctx.fillText(text, x, y); 
 			ctx.restore();
 		});
+	}
+	getValue(){
+		return this._value;
 	}
 }
 
@@ -191,6 +238,7 @@ class Input extends Text{
 	
 	constructor(id, params = array(), callback){
 	 	super(id, params, callback);
+		this.ClassName = "Input";
 	 	this._type = params["type"];
 	 	this._radius = params["radius"];
 	 	this._border_color = params["border-color"];
@@ -215,11 +263,9 @@ class Input extends Text{
 	}
 
 	frameLoop(){
-
-		if(this._callbackFrameLoop != undefined) this._callbackFrameLoop(this);
+		super.frameLoop();
 		this.isFocus();
-		this.isClicked();
-
+	
 		this.doInAllViews(function(me, ctx){
 			ctx.save();
 			ctx.beginPath();
@@ -249,10 +295,10 @@ class Input extends Text{
 				if(me._text == undefined) text = me._default_text;
 				else text = me._text;
 				
-				if(me._isClicked){
+
+				if(me._is_last_click){
 					text = me._text;
 					me._background_color = "rgba(80,155,160,1)";
-	//				console.log("Click");
 				}
 				else{
 					me._background_color = "white";
@@ -263,7 +309,7 @@ class Input extends Text{
 			}
 
 
-			if(LGuiJs._last_key.time != undefined && me._isClicked && me._last_time_added_key < LGuiJs._last_key.time){
+			if(LGuiJs._last_key.time != undefined && me._is_last_click && me._last_time_added_key < LGuiJs._last_key.time){
 
 				
 				if(me._text == undefined) me._text = "";
@@ -271,6 +317,7 @@ class Input extends Text{
 				//console.log(me._text);
 
 				if(me._type == "password"){
+					if(me._value == undefined) me._value = "";
 					if(LGuiJs._last_key.char == "Backspace"){
 						me._text = me._text.substring(0, me._text.length-1);
 						me._value = me._value.substring(0, me._value.length-1);

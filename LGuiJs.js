@@ -11,9 +11,12 @@ class LGuiJs{
 
 	static _keyboard = [];
 	static _last_key = {};
-	static _mouse = {};
+	static _mouse = {
+		click: {x_: undefined, y: undefined},
+		last_click: {x: undefined, y: undefined},
+		focus: {x: undefined, y:undefined}
+	};
 
-	_last_data = 0;
 	_ping = 0;
 
 	_view = null;
@@ -83,7 +86,7 @@ class LGuiJs{
 			console.log(e.key.length);
 			*/
 			if(key != undefined) LGuiJs._last_key = {char: key, time: Date.now()};
-			console.log(LGuiJs._last_key);
+		//	console.log(LGuiJs._last_key);
 		});
 		document.addEventListener("keyup",function(e){
 			var key = e.key;
@@ -104,13 +107,13 @@ class LGuiJs{
 			window.addEventListener('contextmenu', function(e) {e.preventDefault();});
 		}
 		this._canvas.addEventListener("mousedown", function(e){
-			LGuiJs._mouse.button = e.which;
-			LGuiJs._mouse.x = e.offsetX;
-			LGuiJs._mouse.y = e.offsetY;
+			LGuiJs._mouse.click.button = e.which;
+			LGuiJs._mouse.click.x = e.offsetX;
+			LGuiJs._mouse.click.y = e.offsetY;
 		});
 		this._canvas.addEventListener("mousemove", function(e){
-			LGuiJs._mouse.posX = e.clientX;
-			LGuiJs._mouse.posY = e.clientY;
+			LGuiJs._mouse.focus.x = e.clientX;
+			LGuiJs._mouse.focus.y = e.clientY;
 		});
 	}
 
@@ -143,6 +146,53 @@ class LGuiJs{
 	
 	static getGui(Gui){
 		return LGuiJs._instances[Gui];
+	}
+
+	httpRequest(method, url, callback){
+		var http = httpRequest.start(method, url);
+		http.onReady(callback);
+		this._ping = http._ms;
+	}
+}
+
+class httpRequest{
+	_http;
+	_method;
+	_url;
+	_callback;
+	_last_data_send;
+	_ms;
+	static start(method, url){
+		var instance = new httpRequest();
+		instance._http = new XMLHttpRequest();
+		instance._http.open(method, url);
+		instance._last_data_send = Date.now();
+		instance._callback;
+		instance._http.send();
+		return instance;
+	}
+	onReady(callback){
+		this._http.onreadystatechange = function(){
+			this._ms = Date.now() - this._last_data_send;
+	//			callback(instance._http, instance._ms);
+			callback(this);
+		}
+		return instance;
+	}
+
+	constructor(){ //Private ??
+
+	}
+	/*
+	constructor(method, url){
+		this._http = new XMLHttpRequest();
+		this._http.open(method, url);
+		this._last_data_send = Date.now();
+		this._http.send();
+	}
+	*/
+	onReady(){
+
 	}
 
 }
