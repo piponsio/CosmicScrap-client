@@ -123,8 +123,7 @@ class LGuiJs{
 
 	httpRequest(method, url, callback){
 		var http = httpRequest.start(method, url);
-		http.onReady(callback);
-		this._ping = http._ms;
+		http.onReady(callback, this);
 	}
 
 	getPing(){
@@ -150,15 +149,17 @@ class httpRequest{
 		instance._http.send();
 		return instance;
 	}
-	onReady(callback){
+	onReady(callback, gui){
 		var http_request = this;
 		var aux = function(a){
 				a._ms = Date.now() - a._last_data_send;
+				gui._ping = a._ms;
 				callback(a._http);
 		}
-		this._http.onreadystatechange = aux(http_request);
+		this._http.onreadystatechange = function(){
+			aux(http_request);
+		};
 	}
-
 	constructor(){ //Private ??
 
 	}

@@ -1,28 +1,28 @@
 class Element{
-	_view = [];
-	ClassName;
 	_id;
+	static _elementList = [];
+	_view = [];
 	_callbackFrameLoop;
-	_width;
-	_height;
 	_image;
-	_image_src;
-	_background_color;
-	_display;
-
-	_x;
-	_y;
-	_center = {};
 	_cursor;
+	_center = {};
 
 	_is_mouse_over = false;
-	_isFocus;
 
 	_click_flag = false;
 	_is_last_click = false;
 	_click_event = [];
 
-	static _elementList = [];
+
+	ClassName;
+	_display;
+	_image_src;
+	_background_color;
+	
+	_x;
+	_y;
+	_width;
+	_height;
 
 	constructor(id, params = array(), callback){ 
 		this.ClassName = "Element";
@@ -167,6 +167,47 @@ class Background extends Element{
 					if(me._width == undefined) me._width = me._image.width;
 					if(me._height == undefined) me._height = me._image.height;
 					ctx.drawImage(me._image, me._x, me._y, me._width, me._height);
+					ctx.save();
+				}
+				else if(me._background_color != undefined){
+					ctx.save();
+					ctx.fillStyle = me._background_color;
+//					console.log()
+					ctx.fillRect(me._x, me._y, me._width, me._height); 
+					ctx.restore();
+				}
+			}
+		});
+	}
+}
+
+class Button extends Element{
+
+	_sx;
+	_sy;
+	_sWidth;
+	_sHeight;
+
+	constructor(id, params = array(), callback){
+	 	super(id, params, callback);
+	 	this._sx = (params["sx"] != undefined)? params["sx"] : this._x;
+	 	this._sy = (params["sy"] != undefined)? params["sy"] : this._y;
+	 	this._sWidth = (params["swidth"] != undefined)? params["swidth"] : this._width;
+	 	this._sHeight = (params["sheight"] != undefined)? params["sheight"] : this._height; 
+
+		this.ClassName = "Button";
+		this._cursor = "pointer";
+	}
+	frameLoop(){
+		super.frameLoop();
+		this.isMouseOver();
+		
+		this.doInAllViews(function(me, ctx){
+			if(me._display){
+				if(me._image != undefined){
+					if(me._width == undefined) me._width = me._image.width;
+					if(me._height == undefined) me._height = me._image.height;
+					ctx.drawImage(me._image, me._sx, me._sy, me._sWidth, me._sHeight, me._x, me._y, me._width, me._height);					
 					ctx.save();
 				}
 				else if(me._background_color != undefined){
