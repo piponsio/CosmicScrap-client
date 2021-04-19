@@ -101,13 +101,13 @@ class LGuiJs{
 
   	loadMedia(callback) {
   		callback();
+		var Gui = this;
 		var startInterval = function(a){
-			a._interval = window.setInterval(LGuiJs.frameLoop, 1000 / 60);
-			//interval undefined
-//			a._interval = window.setInterval(LGuiJs.frameLoop, 1000 / a._fps);
+			a._interval = window.setInterval(LGuiJs.frameLoop, 1000 / a._fps);
 		}
+		
 		window.onload = function(){
-			startInterval(this);
+			startInterval(Gui);
 		};
 	}
 
@@ -166,59 +166,3 @@ class httpRequest{
 }
 
 console.log("LazySoft GUI for JavasScript");
-
-
-/*
-class Limport{
-	static _imports = new Map();
-
-	static setStatusImport(url, bool){
-		Limport._imports.set(url, bool);
-	}
-	static simpleImport(url) {
-	    var script = document.createElement("script");
-   		script.src = url;
-	    script.type = 'text/javascript';
-
-    	document.querySelector("head").appendChild(script);
-    	Limport.setStatusImport(url, false);
-	    script.onreadystatechange = Limport.setStatusImport(url, true);
-	    script.onload = Limport.setStatusImport(url, true);
-	}
-
-	static import(callback){
-		callback();
-	//	console.log("Dentro de importAll()");
-
-		var start = Date.now();
-		var importDone = false;
-		while(!importDone && (Date.now() - start) < 5000){
-			var temp = true;
-			
-			for (let [key, value] of Limport._imports){
-				temp = temp && value;
-				if(temp == false){
-					importDone = false;
-					break;
-				}
-			}
-			if(temp) importDone = true;
-		}
-		if(importDone) console.log("Importacion finalizada");
-		if(importDone) console.log("Importacion Erronea");
-		console.log("Tiempo: " + (Date.now() - start));
-
-	}
-}
-
-Limport.import(function(){	
-		Limport.simpleImport("./LGuiJs/Core/Controllers.js");
-		Limport.simpleImport("./LGuiJs/Core/Views.js");
-		Limport.simpleImport("./LGuiJs/Core/Elements.js");
-		Limport.simpleImport("./LGuiJs/Controllers.js");
-		Limport.simpleImport("./LGuiJs/Views.js");
-		Limport.simpleImport("./LGuiJs/Elements.js");
-});
-
-
-*/

@@ -24,6 +24,11 @@ class Element{
 	_width;
 	_height;
 
+	_sx;
+	_sy;
+	_sWidth;
+	_sHeight;
+
 	constructor(id, params = array(), callback){ 
 		this.ClassName = "Element";
 		this._id = id;
@@ -35,19 +40,24 @@ class Element{
 			params["view"].addElement(this, params["z-index"]);
 		}
 
-		this._display = (params["display"] != undefined) ? params["display"] : true; 
+		this._display = (params["display"] != undefined) ? params["display"] : true;
+
+	 	this._x = (params["x"] != undefined) ? params["x"] : 0;
+	 	this._y = (params["y"] != undefined) ? params["y"] : 0;
 		this._width = params["width"];
 		this._height = params["height"];
+
+
+	 	this._sx = (params["sx"] != undefined)? params["sx"] : this._x;
+	 	this._sy = (params["sy"] != undefined)? params["sy"] : this._y;
+	 	this._sWidth = (params["swidth"] != undefined)? params["swidth"] : undefined;
+	 	this._sHeight = (params["sheight"] != undefined)? params["sheight"] : undefined; 
+
+
 		this._image = params["image"];
 		this._image_src = params["image_src"];
 		if(params["background-color"] != undefined && this.isColor(params["background-color"])) this._background_color = params["background-color"];
-		this._x = params["x"];
-		this._y = params["y"];
-
-		if(params["x"] != undefined) this._x = params["x"];
-		else this._x = 0;
-		if(params["y"] != undefined) this._y = params["y"];
-		else this._y = 0;
+		
 	}
 
 	setView(view){
@@ -58,6 +68,11 @@ class Element{
 		if(this._image_src != undefined){
 			this._image = new Image();
 			this._image.src = this._image_src;
+
+			if(this._width == undefined) this._width = this._image.width;
+			if(this._height == undefined) this._height = this._image.height;
+			if(this._sWidth == undefined) this._sWidth = this._image.width;
+			if(this._sHeight == undefined) this._sHeight = this._image.height;
 		}
 	}
 
@@ -166,13 +181,13 @@ class Background extends Element{
 				if(me._image != undefined){
 					if(me._width == undefined) me._width = me._image.width;
 					if(me._height == undefined) me._height = me._image.height;
-					ctx.drawImage(me._image, me._x, me._y, me._width, me._height);
+//					console.log(me._image.width);
+					ctx.drawImage(me._image, me._sx, me._sy, me._sWidth, me._sHeight, me._x, me._y, me._width, me._height);	
 					ctx.save();
 				}
 				else if(me._background_color != undefined){
 					ctx.save();
 					ctx.fillStyle = me._background_color;
-//					console.log()
 					ctx.fillRect(me._x, me._y, me._width, me._height); 
 					ctx.restore();
 				}
@@ -183,17 +198,9 @@ class Background extends Element{
 
 class Button extends Element{
 
-	_sx;
-	_sy;
-	_sWidth;
-	_sHeight;
 
 	constructor(id, params = array(), callback){
 	 	super(id, params, callback);
-	 	this._sx = (params["sx"] != undefined)? params["sx"] : this._x;
-	 	this._sy = (params["sy"] != undefined)? params["sy"] : this._y;
-	 	this._sWidth = (params["swidth"] != undefined)? params["swidth"] : this._width;
-	 	this._sHeight = (params["sheight"] != undefined)? params["sheight"] : this._height; 
 
 		this.ClassName = "Button";
 		this._cursor = "pointer";
@@ -201,7 +208,7 @@ class Button extends Element{
 	frameLoop(){
 		super.frameLoop();
 		this.isMouseOver();
-		
+				
 		this.doInAllViews(function(me, ctx){
 			if(me._display){
 				if(me._image != undefined){

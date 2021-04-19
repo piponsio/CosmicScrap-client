@@ -58,8 +58,9 @@ class View{
 				this._cursor.pointer = false;
 				//Hacer funcion para cada tipo de cursor
 			}
-			else this._LGuiJs._canvas.style.cursor = "default";	
-		}
+			else{
+				if(this._LGuiJs != null) this._LGuiJs._canvas.style.cursor = "default";	
+		}	}
 		
 	}
 
