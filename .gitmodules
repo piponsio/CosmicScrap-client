@@ -1,3 +1,3 @@
-[submodule "Core/Limport"]
-	path = Core/Limport
+[submodule "LGuiJs/Limport"]
+	path = LGuiJs/Limport
 	url = https://github.com/piponsio/Limport.git

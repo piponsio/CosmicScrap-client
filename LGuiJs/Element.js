@@ -50,8 +50,8 @@ class Element{
 
 	 	this._sx = (params["sx"] != undefined)? params["sx"] : this._x;
 	 	this._sy = (params["sy"] != undefined)? params["sy"] : this._y;
-	 	this._sWidth = (params["swidth"] != undefined)? params["swidth"] : undefined;
-	 	this._sHeight = (params["sheight"] != undefined)? params["sheight"] : undefined; 
+	 	this._sWidth = params["swidth"];
+	 	this._sHeight = params["sheight"]; 
 
 
 		this._image = params["image"];
@@ -73,6 +73,12 @@ class Element{
 			if(this._height == undefined) this._height = this._image.height;
 			if(this._sWidth == undefined) this._sWidth = this._image.width;
 			if(this._sHeight == undefined) this._sHeight = this._image.height;
+		}
+		if(this._background_color != undefined){
+			if(this._width == undefined) this._width = window.innerWidth;
+			if(this._height == undefined) this._height = window.innerHeight;
+			if(this._sWidth == undefined) this._sWidth = window.innerWidth;;
+			if(this._sHeight == undefined) this._sHeight = window.innerHeight;
 		}
 	}
 
@@ -181,7 +187,6 @@ class Background extends Element{
 				if(me._image != undefined){
 					if(me._width == undefined) me._width = me._image.width;
 					if(me._height == undefined) me._height = me._image.height;
-//					console.log(me._image.width);
 					ctx.drawImage(me._image, me._sx, me._sy, me._sWidth, me._sHeight, me._x, me._y, me._width, me._height);	
 					ctx.save();
 				}
@@ -220,7 +225,6 @@ class Button extends Element{
 				else if(me._background_color != undefined){
 					ctx.save();
 					ctx.fillStyle = me._background_color;
-//					console.log()
 					ctx.fillRect(me._x, me._y, me._width, me._height); 
 					ctx.restore();
 				}
@@ -367,8 +371,6 @@ class Input extends Text{
 
 				
 				if(me._text == undefined) me._text = "";
-
-				//console.log(me._text);
 
 				if(me._type == "password"){
 					if(me._value == undefined) me._value = "";
