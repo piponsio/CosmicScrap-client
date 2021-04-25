@@ -3,22 +3,11 @@ class Element{
 	static _elementList = [];
 	_view = [];
 	_callbackFrameLoop;
-	_image;
-	_cursor;
-	_center = {};
-
-	_is_mouse_over = false;
-
-	_click_flag = false;
-	_is_last_click = false;
-	_click_event = [];
-
 
 	ClassName;
-	_display;
-	_image_src;
-	_background_color;
-	
+
+	_center = {};
+		
 	_x;
 	_y;
 	_width;
@@ -29,6 +18,21 @@ class Element{
 	_sWidth;
 	_sHeight;
 
+	_display;
+	_image;
+	_image_src;
+	_background_color;
+
+	_cursor;
+
+	_is_mouse_over = false;
+
+	_click_flag = false;
+	_is_last_click = false;
+	_click_event = [];
+
+
+	
 	constructor(id, params = array(), callback){ 
 		this.ClassName = "Element";
 		this._id = id;
@@ -60,10 +64,6 @@ class Element{
 		
 	}
 
-	setView(view){
-		if(view != undefined) this._view.push(view);
-	}
-
 	loadMedia(){
 		if(this._image_src != undefined){
 			this._image = new Image();
@@ -84,10 +84,8 @@ class Element{
 
 	frameLoop(){
 		if(this._callbackFrameLoop != undefined) this._callbackFrameLoop(this);
-	}
-
-	static getElement(name = ""){
-		return Element._elementList[name];
+		this.draw();
+		this.isMouseOver();
 	}
 
 	doInAllViews(callback){
@@ -98,7 +96,7 @@ class Element{
 			}
 		}
 	}
-	
+
 	doInGui(callback){
 		this.doInAllViews(function(me,ctx, gui){
 			callback(gui);
@@ -107,6 +105,12 @@ class Element{
 		//es probable que el elemento esté en mas de una vista
 		// y que estas dos vistas compartan gui
 	}
+
+
+	draw(){
+
+	}
+
 	center(){
 		if(this._x != undefined && this._y != undefined && this._width != undefined && this._height != undefined){
 			this._center = {x: this._x + (this._width/2), y: this._y + (this._height/2)};
@@ -124,6 +128,13 @@ class Element{
 		return result;
 	}
 
+
+	addEventListener(type, callback){
+		if(type == "click"){
+			this._click_event.push(callback);
+		}
+	}
+
 	isMouseOver(){
 		if(LGuiJs._mouse.position != undefined){	
 			if(LGuiJs._mouse.position.x > this._x && LGuiJs._mouse.position.x < this._x + this._width){
@@ -133,7 +144,6 @@ class Element{
 				else this._is_mouse_over = false;
 			}
 			else this._is_mouse_over = false;
-			//if(callback != undefined) callback(this);
 		}
 		return this._isFocus;
 	}
@@ -161,27 +171,28 @@ class Element{
 			else{
 				this._click_flag = false;
 				this._is_click = false;
-			} 
-				
+			} 	
 		}
-		
 		return result;
 	}
 
-	addEventListener(type, callback){
-		if(type == "click"){
-			this._click_event.push(callback);
-		}
+	setView(view){
+		if(view != undefined) this._view.push(view);
+	}
+
+	static getElement(name = ""){
+		return Element._elementList[name];
 	}
 }
 
 class Background extends Element{
+
 	constructor(id, params = array(), callback){
 	 	super(id, params, callback);
 		this.ClassName = "Background";
 	}
-	frameLoop(){
-		super.frameLoop();
+
+	draw(){
 		this.doInAllViews(function(me, ctx){
 			if(me._display){
 				if(me._image != undefined){
@@ -203,17 +214,14 @@ class Background extends Element{
 
 class Button extends Element{
 
-
 	constructor(id, params = array(), callback){
 	 	super(id, params, callback);
 
 		this.ClassName = "Button";
 		this._cursor = "pointer";
 	}
-	frameLoop(){
-		super.frameLoop();
-		this.isMouseOver();
-				
+
+	draw(){
 		this.doInAllViews(function(me, ctx){
 			if(me._display){
 				if(me._image != undefined){
@@ -255,10 +263,9 @@ class Text extends Element{
 	 	this._size = params["size"];
 	 	this._text_align = params["text-align"];
 	}
-	
-	frameLoop(){
-		super.frameLoop();
-		if(this._text != undefined && this.ClassName == "Text") this.drawText(this._x, this._y, this._text_align, this._text);
+
+	draw(){
+		if(this._text != undefined && this.ClassName == "Text") this.drawText(this._x, this._y, this._text_align, this._text);	
 	}
 
 	setText(text){
@@ -275,6 +282,7 @@ class Text extends Element{
 			ctx.restore();
 		});
 	}
+
 	getValue(){
 		var result = (this._value != undefined) ? this._value : ""; 
 		return result;
@@ -320,11 +328,8 @@ class Input extends Text{
 	 	}
 	}
 
-	frameLoop(){
-		super.frameLoop();
-		this.isMouseOver();
-	
-		this.doInAllViews(function(me, ctx){
+	draw(){
+			this.doInAllViews(function(me, ctx){
 			ctx.save();
 			ctx.beginPath();
 			ctx.moveTo(me._x, me._y + me._radius);
@@ -410,3 +415,22 @@ class Input extends Text{
 		});
 	}
 }
+
+/*
+class Container extends Element{
+	_child = [];
+	constructor(id, params = array(), callback){
+	 	super(id, params, callback);
+
+//		this.ClassName = "Button";
+//		this._cursor = "pointer";
+	}
+	frameLoop(){
+		super.frameLoop();
+		
+		for(var i = 0; i < this._child.length; i++){
+			this._child[i].frameLoop();
+		}
+	}
+}
+*/
