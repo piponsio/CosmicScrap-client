@@ -30,7 +30,7 @@ class Element{
 	_mouse_over_event = [];
 
 	_is_mouse_out = false;
-	_mouse_out_flag = false;
+	_mouse_out_flag = true;
 	_mouse_out_event = [];
 
 	_is_click = false;
@@ -159,7 +159,7 @@ class Element{
 		//1: al iniciar, sale del ultimo elemento de la vista -- OK
 		//2: Entra al input, pese que está abajo de background en una modificacion
 		//Significa que hace la transicion con cualquier elemento que encuentre, excepto los que no tienen 2d
-		//3: Al realizar el primer movimiento, los elementos lanzan "is_mouse_out"
+		//3: Al realizar el primer movimiento, los elementos lanzan "is_mouse_out" -- OK
 		var result = false;
 		if(LGuiJs._mouse.position.x != undefined && LGuiJs._mouse.position.y){
 			if((LGuiJs._mouse.position.x > this._x && LGuiJs._mouse.position.x < this._x + this._width) 
@@ -167,7 +167,6 @@ class Element{
 			
 				if(!this._mouse_over_flag){
 					console.log("Entro a: "+this._id);
-				//	console.log(this._is_mouse_out);
 					result = true;
 					this._is_mouse_over = true;
 					this._mouse_over_flag = true;
@@ -184,6 +183,7 @@ class Element{
 					this._is_mouse_over = false;
 					this._mouse_over_flag = true;
 					this._mouse_out_flag = true;
+					console.log("Salió de "+this._id);
 				}
 			}
 			else{
