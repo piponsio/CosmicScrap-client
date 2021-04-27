@@ -107,10 +107,20 @@ class Element{
 	doInAllPartners(callback){
 		for(var i = 0; i < this._view.length; i++){
 			if(this._view[i] != null && this._view[i]._LGuiJs != null){
+				var me;
 				for(var j = 0; j < this._view[i]._elementList.length; j++){
-					var element = this._view[i]._elementList[j].instance;
+					var element = this._view[i]._elementList[j];
+					if(element.instance == this){
+						me = this._view[i]._elementList[j];
+						j = this._view[i]._elementList.length;
+					}
+				}
 
-					if(element != this) callback(this, element);
+				for(var j = 0; j < this._view[i]._elementList.length; j++){
+					var view = this._view[i];
+					var element = this._view[i]._elementList[j];
+
+					if(element.instance != this) callback(me, element, view);
 				}
 			}	
 		}
@@ -157,9 +167,14 @@ class Element{
 	isMouseOver(){
 		//BUG
 		//1: al iniciar, sale del ultimo elemento de la vista -- OK
-		//2: Entra al input, pese que está abajo de background en una modificacion
+
+		//2: Entra al input, pese que está abajo de background en una modificacion -- OK
 		//Significa que hace la transicion con cualquier elemento que encuentre, excepto los que no tienen 2d
+		
 		//3: Al realizar el primer movimiento, los elementos lanzan "is_mouse_out" -- OK
+		
+		//4: Al iniciar en elementos sobrelapados, ingresa a todos al mismo tiempo
+		//y luego expulsa a todos menos al ultimo (el último lo gener)
 		var result = false;
 		if(LGuiJs._mouse.position.x != undefined && LGuiJs._mouse.position.y){
 			if((LGuiJs._mouse.position.x > this._x && LGuiJs._mouse.position.x < this._x + this._width) 
@@ -175,29 +190,32 @@ class Element{
 					this._mouse_out_flag = false;
 
 					this.doInAllPartners(function(me, element){
-						element._is_mouse_over = false;
-						element._is_mouse_out = true;
+						element.instance._is_mouse_over = false;
+						element.instance._is_mouse_out = true;
+						if(element["z-index"] < me["z-index"]) element.instance._mouse_over_flag = true;
 					});
 				}
 				if(this._is_mouse_out && !this._mouse_out_flag){
 					this._is_mouse_over = false;
-					this._mouse_over_flag = true;
 					this._mouse_out_flag = true;
-					console.log("Salió de "+this._id);
+					console.log("Salió de :"+this._id);
 				}
 			}
 			else{
 				if(!this._mouse_out_flag){
 					this._is_mouse_out = true;
 					this._mouse_out_flag = true;
+
+					this._is_mouse_over = false;
+					this._mouse_over_flag = false;
+					
 					console.log("Salió de "+this._id);
+
 					this.doInAllPartners(function(me, element){
-						element._mouse_over_flag = false;
-						element._mouse_out_flag = true;
+						element.instance._mouse_over_flag = false;
+						element.instance._mouse_out_flag = true;
 					});
 				}
-				this._is_mouse_over = false;
-				this._mouse_over_flag = false;
 			}
 		}
 		return result;

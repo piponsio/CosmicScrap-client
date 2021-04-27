@@ -26,7 +26,9 @@ class View{
 	frameLoop(){
 		if(this._LGuiJs != null){
 
+					
 			for(var i = this._elementList.length-1; i >= 0; i--){
+				//this._elementList[this._elementList.length-1].instance._mouse_over_flag = false;
 				if(this._elementList[i].instance.isClick()){
 					for(var j = 0; j < this._elementList[i].instance._click_event.length; j++){
 						this._elementList[i].instance._click_event[j].apply(this, [this._elementList[i].instance]);
@@ -41,6 +43,7 @@ class View{
 				}
 
 				if(this._elementList[i].instance.isMouseOver()){
+					//this._elementList[i].instance._mouse_over_flag = false;
 					//Bug
 					//al entrar a una debería desactivar a las otras
 					//actualmente una desactiva a la otra, esta al estar
