@@ -26,9 +26,15 @@ class Element{
 	_cursor;
 
 	_is_mouse_over = false;
+	_mouse_over_flag = false;
+	_mouse_over_event = [];
 
+	_is_mouse_out = false;
+	_mouse_out_flag = false;
+	_mouse_out_event = [];
+
+	_is_click = false;
 	_click_flag = false;
-	_is_last_click = false;
 	_click_event = [];
 
 
@@ -85,18 +91,31 @@ class Element{
 	frameLoop(){
 		if(this._callbackFrameLoop != undefined) this._callbackFrameLoop(this);
 		this.draw();
-		this.isMouseOver();
 	}
 
 	doInAllViews(callback){
 		for(var i = 0; i < this._view.length; i++){
 			if(this._view[i] != null && this._view[i]._LGuiJs != null){	
 				var ctx = this._view[i]._LGuiJs._context;
-				callback(this, ctx, this._view[i]._LGuiJs);
+				var gui = this._view[i]._LGuiJs;
+
+				callback(this, ctx, gui);
 			}
 		}
 	}
 
+	doInAllPartners(callback){
+		for(var i = 0; i < this._view.length; i++){
+			if(this._view[i] != null && this._view[i]._LGuiJs != null){
+				for(var j = 0; j < this._view[i]._elementList.length; j++){
+					var element = this._view[i]._elementList[j].instance;
+
+					if(element != this) callback(this, element);
+				}
+			}	
+		}
+	}
+	
 	doInGui(callback){
 		this.doInAllViews(function(me,ctx, gui){
 			callback(gui);
@@ -136,16 +155,52 @@ class Element{
 	}
 
 	isMouseOver(){
-		if(LGuiJs._mouse.position != undefined){	
-			if(LGuiJs._mouse.position.x > this._x && LGuiJs._mouse.position.x < this._x + this._width){
-				if(LGuiJs._mouse.position.y > this._y && LGuiJs._mouse.position.y < this._y + this._height){
+		//BUG
+		//1: al iniciar, sale del ultimo elemento de la vista -- OK
+		//2: Entra al input, pese que está abajo de background en una modificacion
+		//Significa que hace la transicion con cualquier elemento que encuentre, excepto los que no tienen 2d
+		//3: Al realizar el primer movimiento, los elementos lanzan "is_mouse_out"
+		var result = false;
+		if(LGuiJs._mouse.position.x != undefined && LGuiJs._mouse.position.y){
+			if((LGuiJs._mouse.position.x > this._x && LGuiJs._mouse.position.x < this._x + this._width) 
+			&& (LGuiJs._mouse.position.y > this._y && LGuiJs._mouse.position.y < this._y + this._height)){
+			
+				if(!this._mouse_over_flag){
+					console.log("Entro a: "+this._id);
+				//	console.log(this._is_mouse_out);
+					result = true;
 					this._is_mouse_over = true;
+					this._mouse_over_flag = true;
+
+					this._is_mouse_out = false;
+					this._mouse_out_flag = false;
+
+					this.doInAllPartners(function(me, element){
+						element._is_mouse_over = false;
+						element._is_mouse_out = true;
+					});
 				}
-				else this._is_mouse_over = false;
+				if(this._is_mouse_out && !this._mouse_out_flag){
+					this._is_mouse_over = false;
+					this._mouse_over_flag = true;
+					this._mouse_out_flag = true;
+				}
 			}
-			else this._is_mouse_over = false;
+			else{
+				if(!this._mouse_out_flag){
+					this._is_mouse_out = true;
+					this._mouse_out_flag = true;
+					console.log("Salió de "+this._id);
+					this.doInAllPartners(function(me, element){
+						element._mouse_over_flag = false;
+						element._mouse_out_flag = true;
+					});
+				}
+				this._is_mouse_over = false;
+				this._mouse_over_flag = false;
+			}
 		}
-		return this._isFocus;
+		return result;
 	}
 
 	isClick(callback){
@@ -155,8 +210,7 @@ class Element{
 				if(LGuiJs._mouse.click.y > this._y && LGuiJs._mouse.click.y < this._y + this._height){
 					if(!this._click_flag){
 						result = true;
-						
-						this._is_last_click = true;
+						this._is_click = true;
 						this._click_flag = true;
 
 						LGuiJs._mouse.last_click.x = LGuiJs._mouse.click.x;
@@ -165,12 +219,10 @@ class Element{
 				}
 				else{
 					this._click_flag = false;
-					this._is_click = false;
 				}
 			}
 			else{
 				this._click_flag = false;
-				this._is_click = false;
 			} 	
 		}
 		return result;
@@ -249,6 +301,7 @@ class Text extends Element{
 	_size;
 	_text_align;
 	_value;
+
 	constructor(id, params = array(), callback){
 	 	super(id, params, callback);
 		this.ClassName = "Text";
@@ -358,8 +411,7 @@ class Input extends Text{
 				if(me._text == undefined) text = me._default_text;
 				else text = me._text;
 				
-
-				if(me._is_last_click){
+				if(me._is_click){
 					text = me._text;
 					me._background_color = "rgba(80,155,160,1)";
 				}
@@ -371,8 +423,7 @@ class Input extends Text{
 				if(text == undefined) text = "|";
 			}
 
-
-			if(LGuiJs._last_key.time != undefined && me._is_last_click && me._last_time_added_key < LGuiJs._last_key.time){
+			if(LGuiJs._last_key.time != undefined && me._is_click && me._last_time_added_key < LGuiJs._last_key.time){
 
 				
 				if(me._text == undefined) me._text = "";

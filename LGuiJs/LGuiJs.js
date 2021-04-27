@@ -12,7 +12,7 @@ class LGuiJs{
 	static _keyboard = [];
 	static _last_key = {};
 	static _mouse = {
-		click: {x_: undefined, y: undefined},
+		click: {x: undefined, y: undefined},
 		last_click: {x: undefined, y: undefined},
 		position: {x: undefined, y:undefined}
 	};
