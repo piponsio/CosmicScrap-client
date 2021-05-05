@@ -25,6 +25,14 @@ class Element{
 
 	_cursor;
 
+//	_event_callback = [];
+//	_event_callback[""]
+	_event_callback = {
+		click: [],
+		mouseover: [],
+		mouseout: [],
+	}
+
 	_is_mouse_over = false;
 	_mouse_over_flag = false;
 	_mouse_over_event = [];
@@ -159,22 +167,14 @@ class Element{
 
 
 	addEventListener(type, callback){
-		if(type == "click"){
-			this._click_event.push(callback);
-		}
+		this._event_callback[type].push(callback);
+	}
+
+	activateEventCallbacks(type){
+		for(var i = 0; i < this._event_callback[type].length; i++) this._event_callback[type][i].apply(this, [this]);
 	}
 
 	isMouseOver(){
-		//BUG
-		//1: al iniciar, sale del ultimo elemento de la vista -- OK
-
-		//2: Entra al input, pese que está abajo de background en una modificacion -- OK
-		//Significa que hace la transicion con cualquier elemento que encuentre, excepto los que no tienen 2d
-		
-		//3: Al realizar el primer movimiento, los elementos lanzan "is_mouse_out" -- OK
-		
-		//4: Al iniciar en elementos sobrelapados, ingresa a todos al mismo tiempo
-		//y luego expulsa a todos menos al ultimo (el último lo gener)
 		var result = false;
 		if(LGuiJs._mouse.position.x != undefined && LGuiJs._mouse.position.y){
 			if((LGuiJs._mouse.position.x > this._x && LGuiJs._mouse.position.x < this._x + this._width) 
@@ -185,6 +185,7 @@ class Element{
 					result = true;
 					this._is_mouse_over = true;
 					this._mouse_over_flag = true;
+					this.activateEventCallbacks("mouseover");
 
 					this._is_mouse_out = false;
 					this._mouse_out_flag = false;
@@ -199,6 +200,7 @@ class Element{
 					this._is_mouse_over = false;
 					this._mouse_out_flag = true;
 					console.log("Salió de :"+this._id);
+					this.activateEventCallbacks("mouseout");
 				}
 			}
 			else{
@@ -210,6 +212,7 @@ class Element{
 					this._mouse_over_flag = false;
 					
 					console.log("Salió de "+this._id);
+					this.activateEventCallbacks("mouseout");
 
 					this.doInAllPartners(function(me, element){
 						element.instance._mouse_over_flag = false;
@@ -224,19 +227,24 @@ class Element{
 	isClick(callback){
 		var result = false;
 		if(LGuiJs._mouse.click != undefined){
-			if(LGuiJs._mouse.click.x > this._x && LGuiJs._mouse.click.x < this._x + this._width){
-				if(LGuiJs._mouse.click.y > this._y && LGuiJs._mouse.click.y < this._y + this._height){
-					if(!this._click_flag){
-						result = true;
-						this._is_click = true;
-						this._click_flag = true;
+			if((LGuiJs._mouse.click.x > this._x && LGuiJs._mouse.click.x < this._x + this._width)
+			&& (LGuiJs._mouse.click.y > this._y && LGuiJs._mouse.click.y < this._y + this._height)){
+				if(!this._click_flag){
+					result = true;
+					this._is_click = true;
+					this._click_flag = true;
+					this.activateEventCallbacks("click");
 
-						LGuiJs._mouse.last_click.x = LGuiJs._mouse.click.x;
-						LGuiJs._mouse.last_click.y = LGuiJs._mouse.click.y;
-					}
-				}
-				else{
-					this._click_flag = false;
+					this.doInAllPartners(function(me, element){
+						element.instance._is_click = false;
+					});
+
+					console.log("click dentro de : "+this.ClassName);
+
+					LGuiJs._mouse.last_click.x = LGuiJs._mouse.click.x;
+					LGuiJs._mouse.last_click.y = LGuiJs._mouse.click.y;
+					LGuiJs._mouse.click.x = undefined;
+					LGuiJs._mouse.click.y = undefined;
 				}
 			}
 			else{
