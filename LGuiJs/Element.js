@@ -23,7 +23,7 @@ class Element{
 	_image_src;
 	_background_color;
 
-	_cursor;
+	_cursor = "default";
 
 //	_event_callback = [];
 //	_event_callback[""]
@@ -181,7 +181,6 @@ class Element{
 			&& (LGuiJs._mouse.position.y > this._y && LGuiJs._mouse.position.y < this._y + this._height)){
 			
 				if(!this._mouse_over_flag){
-					console.log("Entro a: "+this._id);
 					result = true;
 					this._is_mouse_over = true;
 					this._mouse_over_flag = true;
@@ -199,7 +198,6 @@ class Element{
 				if(this._is_mouse_out && !this._mouse_out_flag){
 					this._is_mouse_over = false;
 					this._mouse_out_flag = true;
-					console.log("Salió de :"+this._id);
 					this.activateEventCallbacks("mouseout");
 				}
 			}
@@ -211,7 +209,6 @@ class Element{
 					this._is_mouse_over = false;
 					this._mouse_over_flag = false;
 					
-					console.log("Salió de "+this._id);
 					this.activateEventCallbacks("mouseout");
 
 					this.doInAllPartners(function(me, element){
@@ -238,8 +235,6 @@ class Element{
 					this.doInAllPartners(function(me, element){
 						element.instance._is_click = false;
 					});
-
-					console.log("click dentro de : "+this.ClassName);
 
 					LGuiJs._mouse.last_click.x = LGuiJs._mouse.click.x;
 					LGuiJs._mouse.last_click.y = LGuiJs._mouse.click.y;

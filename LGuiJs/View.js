@@ -32,27 +32,12 @@ class View{
 				if(instance.isClick()){
 			
 				}
-
 				if(instance.isMouseOver()){
-					this._cursor.text = this._cursor.text || (instance._cursor == "text" && instance._is_mouse_over);
-					this._cursor.pointer = this._cursor.pointer || (instance._cursor == "pointer" && instance._is_mouse_over);
+					this._LGuiJs._canvas.style.cursor = instance._cursor;
 				}
 
 				this._elementList[this._elementList.length-1-i].instance.frameLoop();
 			}
-		
-			if(this._cursor.text){
-				if(this._LGuiJs != null) this._LGuiJs._canvas.style.cursor = "text";
-				this._cursor.text = false;
-			}
-			else if(this._cursor.pointer){
-				if(this._LGuiJs != null) this._LGuiJs._canvas.style.cursor = "pointer";
-				this._cursor.pointer = false;
-				//Hacer funcion para cada tipo de cursor
-			}
-			else{
-				if(this._LGuiJs != null) this._LGuiJs._canvas.style.cursor = "default";	
-			}	
 		}
 	}
 
