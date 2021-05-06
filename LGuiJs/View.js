@@ -26,7 +26,6 @@ class View{
 	frameLoop(){
 		if(this._LGuiJs != null){
 
-					
 			for(var i = this._elementList.length-1; i >= 0; i--){
 				var instance = this._elementList[i].instance;
 			

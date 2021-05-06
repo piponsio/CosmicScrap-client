@@ -229,7 +229,7 @@ class Element{
 		if(LGuiJs._mouse.click != undefined){
 			if((LGuiJs._mouse.click.x > this._x && LGuiJs._mouse.click.x < this._x + this._width)
 			&& (LGuiJs._mouse.click.y > this._y && LGuiJs._mouse.click.y < this._y + this._height)){
-				if(!this._click_flag){
+				if(!this._click_flag && LGuiJs._mouse.click.button == 1){
 					result = true;
 					this._is_click = true;
 					this._click_flag = true;
