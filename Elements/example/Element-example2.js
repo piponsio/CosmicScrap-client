@@ -8,7 +8,7 @@ new Background("background-example2", {
 new Text("welcome-example2", {
 		"text": "Welcome to View-example2",
 		"font": "Comic Sans MS bold",
-		"size": 35,
+		"font-size": 35,
 		"align": "center",
 		"text-color": "black",
 		"x": 200,
@@ -19,7 +19,7 @@ new Text("welcome-example2", {
 new Input("input-example2", {
 		"default-text": "Go to View-example1",
 		"font": "Comic Sans MS",
-		"size": 10,
+		"font-size": 10,
 		"text-align": "center",
 		"text-color": "black",
 		"border-color": "white",
@@ -39,7 +39,7 @@ new Input("input-example2", {
 new Input("input-text-example2", {
 		"default-text": "Username",
 		"font": "Comic Sans MS",
-		"size": 15,
+		"font-size": 15,
 		"text-align": "center",
 		"text-color": "black",
 		"border-color": "black",
@@ -59,7 +59,7 @@ new Input("input-text-example2", {
 new Input("input-password-example2", {
 		"default-text": "Password",
 		"font": "Comic Sans MS",
-		"size": 15,
+		"font-size": 15,
 		"text-align": "center",
 		"text-color": "black",
 		"border-color": "black",

@@ -28,6 +28,7 @@ class View{
 
 			for(var i = this._elementList.length-1; i >= 0; i--){
 				var instance = this._elementList[i].instance;
+				var instance_asc = this._elementList[this._elementList.length-1-i].instance;
 			
 				if(instance.isClick()){
 			
@@ -36,7 +37,7 @@ class View{
 					this._LGuiJs._canvas.style.cursor = instance._cursor;
 				}
 
-				this._elementList[this._elementList.length-1-i].instance.frameLoop();
+				instance_asc.frameLoop();
 			}
 		}
 	}

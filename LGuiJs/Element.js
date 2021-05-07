@@ -25,8 +25,6 @@ class Element{
 
 	_cursor = "default";
 
-//	_event_callback = [];
-//	_event_callback[""]
 	_event_callback = {
 		click: [],
 		mouseover: [],
@@ -35,17 +33,12 @@ class Element{
 
 	_is_mouse_over = false;
 	_mouse_over_flag = false;
-	_mouse_over_event = [];
 
 	_is_mouse_out = false;
 	_mouse_out_flag = true;
-	_mouse_out_event = [];
 
 	_is_click = false;
 	_click_flag = false;
-	_click_event = [];
-
-
 	
 	constructor(id, params = array(), callback){ 
 		this.ClassName = "Element";
@@ -87,12 +80,6 @@ class Element{
 			if(this._height == undefined) this._height = this._image.height;
 			if(this._sWidth == undefined) this._sWidth = this._image.width;
 			if(this._sHeight == undefined) this._sHeight = this._image.height;
-		}
-		if(this._background_color != undefined){
-			if(this._width == undefined) this._width = window.innerWidth;
-			if(this._height == undefined) this._height = window.innerHeight;
-			if(this._sWidth == undefined) this._sWidth = window.innerWidth;;
-			if(this._sHeight == undefined) this._sHeight = window.innerHeight;
 		}
 	}
 
@@ -143,9 +130,23 @@ class Element{
 		// y que estas dos vistas compartan gui
 	}
 
-
 	draw(){
-
+		this.doInAllViews(function(me, ctx){
+			if(me._display){
+				if(me._image != undefined){
+					if(me._width == undefined) me._width = me._image.width;
+					if(me._height == undefined) me._height = me._image.height;
+					ctx.drawImage(me._image, me._sx, me._sy, me._sWidth, me._sHeight, me._x, me._y, me._width, me._height);	
+					ctx.save();
+				}
+				else if(me._background_color != undefined){
+					ctx.save();
+					ctx.fillStyle = me._background_color;
+					ctx.fillRect(me._x, me._y, me._width, me._height); 
+					ctx.restore();
+				}
+			}
+		});
 	}
 
 	center(){
@@ -266,22 +267,7 @@ class Background extends Element{
 	}
 
 	draw(){
-		this.doInAllViews(function(me, ctx){
-			if(me._display){
-				if(me._image != undefined){
-					if(me._width == undefined) me._width = me._image.width;
-					if(me._height == undefined) me._height = me._image.height;
-					ctx.drawImage(me._image, me._sx, me._sy, me._sWidth, me._sHeight, me._x, me._y, me._width, me._height);	
-					ctx.save();
-				}
-				else if(me._background_color != undefined){
-					ctx.save();
-					ctx.fillStyle = me._background_color;
-					ctx.fillRect(me._x, me._y, me._width, me._height); 
-					ctx.restore();
-				}
-			}
-		});
+		super.draw();
 	}
 }
 
@@ -295,22 +281,7 @@ class Button extends Element{
 	}
 
 	draw(){
-		this.doInAllViews(function(me, ctx){
-			if(me._display){
-				if(me._image != undefined){
-					if(me._width == undefined) me._width = me._image.width;
-					if(me._height == undefined) me._height = me._image.height;
-					ctx.drawImage(me._image, me._sx, me._sy, me._sWidth, me._sHeight, me._x, me._y, me._width, me._height);					
-					ctx.save();
-				}
-				else if(me._background_color != undefined){
-					ctx.save();
-					ctx.fillStyle = me._background_color;
-					ctx.fillRect(me._x, me._y, me._width, me._height); 
-					ctx.restore();
-				}
-			}
-		});
+		super.draw();
 	}
 }
 
@@ -319,7 +290,7 @@ class Text extends Element{
 	_text;
 	_text_color;
 	_font;
-	_size;
+	_font_size;
 	_text_align;
 	_value;
 
@@ -334,12 +305,16 @@ class Text extends Element{
 	 	if(this._value == undefined) this._value = this._text;
 	 	this._text_color = params["text-color"];
 	 	this._font = params["font"];
-	 	this._size = params["size"];
+	 	this._font_size = params["font-size"];
 	 	this._text_align = params["text-align"];
+	
+	 	this._width = params["width"];
+	 	this._height = params["height"];
 	}
 
 	draw(){
-		if(this._text != undefined && this.ClassName == "Text") this.drawText(this._x, this._y, this._text_align, this._text);	
+		super.draw();
+		if(this._text != undefined && this.ClassName == "Text") this.drawText(this._x, this._y, this._text_align, this._text);
 	}
 
 	setText(text){
@@ -349,10 +324,17 @@ class Text extends Element{
 	drawText(x, y, align, text){
 		this.doInAllViews(function(me, ctx){
 			ctx.save();
-			ctx.font = me._size + "px " + me._font;
-			ctx.fillStyle = me._text_color;
+
 			ctx.textAlign = align;
-			ctx.fillText(text, x, y); 
+			ctx.strokeStyle = 'red';
+			ctx.font = me._font_size + "px " + me._font;
+			ctx.fillStyle = me._text_color;
+
+			var metrics = ctx.measureText(text);
+			if(me._width == undefined) me._width = metrics.width;
+			if(me._height == undefined) me._height = (me._y + metrics.actualBoundingBoxDescent) - (me._y - metrics.actualBoundingBoxAscent);
+
+ 			ctx.fillText(text, x, y + metrics.actualBoundingBoxAscent);			      	 
 			ctx.restore();
 		});
 	}
@@ -479,9 +461,9 @@ class Input extends Text{
 				me._stack_key_flag = false;	
 				
 			}
-			if(me._text_align === "center") me.drawText(me.center().x, (me.center().y + (me._size/4)), me._text_align, text, text);
-			if(me._text_align === "left") me.drawText(me._x + me._margin_left + me._border_size, me.center().y, me._text_align, text);
-			if(me._text_align === "right") me.drawText(me._x + me._width - me._margin_right - me._border_size, me.center().y, me._text_align, text);
+			if(me._text_align === "center") me.drawText(me.center().x, (me.center().y - (me._font_size/2)), me._text_align, text, text);
+			if(me._text_align === "left") me.drawText(me._x + me._margin_left + me._border_size, (me.center().y - (me._font_size/2)), me._text_align, text);
+			if(me._text_align === "right") me.drawText(me._x + me._width - me._margin_right - me._border_size, (me.center().y - (me._font_size/2)), me._text_align, text);
 
 			ctx.restore();
 		});
