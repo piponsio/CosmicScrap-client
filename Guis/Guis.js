@@ -1,0 +1,1 @@
+new LGuiJs("main", View.getView("Login"));
