@@ -27,41 +27,19 @@ class View{
 		if(this._LGuiJs != null){
 
 			for(var i = this._elementList.length-1; i >= 0; i--){
-				if(this._elementList[i].instance.isClick()){
-					for(var j = 0; j < this._elementList[i].instance._click_event.length; j++){
-						this._elementList[i].instance._click_event[j].apply(this, [this._elementList[i].instance]);
-					}
-					for(var j = 0; j < this._elementList.length; j++){
-						if(this._elementList[j] != this._elementList[i]) this._elementList[j].instance._is_last_click = false;
-					}
-					LGuiJs._mouse.click.x = undefined;
-					LGuiJs._mouse.click.y = undefined;
-					i = -1;
+				var instance = this._elementList[i].instance;
+				var instance_asc = this._elementList[this._elementList.length-1-i].instance;
+			
+				if(instance.isClick()){
+			
 				}
-			}
-		
-			//Crear metodo para disparar los eventos, todos deberían ser parecidos
+				if(instance.isMouseOver()){
+					this._LGuiJs._canvas.style.cursor = instance._cursor;
+				}
 
-
-			for(var i = 0; i < this._elementList.length; i++){
-				this._cursor.text = this._cursor.text || (this._elementList[i].instance._cursor == "text" && this._elementList[i].instance._is_mouse_over);
-				this._cursor.pointer = this._cursor.pointer || (this._elementList[i].instance._cursor == "pointer" && this._elementList[i].instance._is_mouse_over);
-				
-				this._elementList[i].instance.frameLoop();
+				instance_asc.frameLoop();
 			}
-			if(this._cursor.text){
-				if(this._LGuiJs != null) this._LGuiJs._canvas.style.cursor = "text";
-				this._cursor.text = false;
-			}
-			else if(this._cursor.pointer){
-				if(this._LGuiJs != null) this._LGuiJs._canvas.style.cursor = "pointer";
-				this._cursor.pointer = false;
-				//Hacer funcion para cada tipo de cursor
-			}
-			else{
-				if(this._LGuiJs != null) this._LGuiJs._canvas.style.cursor = "default";	
-		}	}
-		
+		}
 	}
 
 	static getView(name = ""){

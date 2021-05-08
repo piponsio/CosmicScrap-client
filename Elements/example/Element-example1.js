@@ -9,7 +9,7 @@ var time = 0;
 new Text("timer-example1", {
 		"text": "Seg: 0",
 		"font": "Comic Sans MS bold",
-		"size": 15,
+		"font-size": 15,
 		"align": "left",
 		"text-color": "white",
 		"x": 2,
@@ -23,7 +23,7 @@ new Text("timer-example1", {
 new Text("welcome-example1", {
 		"text": "Welcome to View-example1",
 		"font": "Comic Sans MS bold",
-		"size": 30,
+		"font-size": 30,
 		"align": "left",
 		"text-color": "white",
 		"x": 300,
@@ -34,7 +34,7 @@ new Text("welcome-example1", {
 new Input("input-example1", {
 		"default-text": "Go to View-example2",
 		"font": "Comic Sans MS",
-		"size": 15,
+		"font-size": 15,
 		"text-align": "center",
 		"text-color": "black",
 		"border-color": "black",
@@ -43,7 +43,7 @@ new Input("input-example1", {
 		"x": 300,
 		"y": 200,
 		"z-index": 4,
-		"width": 200,
+		"width": 250,
 		"height": 40,
 		"margin": 5,
 		"radius": 10,

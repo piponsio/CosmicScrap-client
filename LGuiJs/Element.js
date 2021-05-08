@@ -3,22 +3,11 @@ class Element{
 	static _elementList = [];
 	_view = [];
 	_callbackFrameLoop;
-	_image;
-	_cursor;
-	_center = {};
-
-	_is_mouse_over = false;
-
-	_click_flag = false;
-	_is_last_click = false;
-	_click_event = [];
-
 
 	ClassName;
-	_display;
-	_image_src;
-	_background_color;
-	
+
+	_center = {};
+		
 	_x;
 	_y;
 	_width;
@@ -29,6 +18,28 @@ class Element{
 	_sWidth;
 	_sHeight;
 
+	_display;
+	_image;
+	_image_src;
+	_background_color;
+
+	_cursor = "default";
+
+	_event_callback = {
+		click: [],
+		mouseover: [],
+		mouseout: [],
+	}
+
+	_is_mouse_over = false;
+	_mouse_over_flag = false;
+
+	_is_mouse_out = false;
+	_mouse_out_flag = true;
+
+	_is_click = false;
+	_click_flag = false;
+	
 	constructor(id, params = array(), callback){ 
 		this.ClassName = "Element";
 		this._id = id;
@@ -60,10 +71,6 @@ class Element{
 		
 	}
 
-	setView(view){
-		if(view != undefined) this._view.push(view);
-	}
-
 	loadMedia(){
 		if(this._image_src != undefined){
 			this._image = new Image();
@@ -74,28 +81,43 @@ class Element{
 			if(this._sWidth == undefined) this._sWidth = this._image.width;
 			if(this._sHeight == undefined) this._sHeight = this._image.height;
 		}
-		if(this._background_color != undefined){
-			if(this._width == undefined) this._width = window.innerWidth;
-			if(this._height == undefined) this._height = window.innerHeight;
-			if(this._sWidth == undefined) this._sWidth = window.innerWidth;;
-			if(this._sHeight == undefined) this._sHeight = window.innerHeight;
-		}
 	}
 
 	frameLoop(){
 		if(this._callbackFrameLoop != undefined) this._callbackFrameLoop(this);
-	}
-
-	static getElement(name = ""){
-		return Element._elementList[name];
+		this.draw();
 	}
 
 	doInAllViews(callback){
 		for(var i = 0; i < this._view.length; i++){
 			if(this._view[i] != null && this._view[i]._LGuiJs != null){	
 				var ctx = this._view[i]._LGuiJs._context;
-				callback(this, ctx, this._view[i]._LGuiJs);
+				var gui = this._view[i]._LGuiJs;
+
+				callback(this, ctx, gui);
 			}
+		}
+	}
+
+	doInAllPartners(callback){
+		for(var i = 0; i < this._view.length; i++){
+			if(this._view[i] != null && this._view[i]._LGuiJs != null){
+				var me;
+				for(var j = 0; j < this._view[i]._elementList.length; j++){
+					var element = this._view[i]._elementList[j];
+					if(element.instance == this){
+						me = this._view[i]._elementList[j];
+						j = this._view[i]._elementList.length;
+					}
+				}
+
+				for(var j = 0; j < this._view[i]._elementList.length; j++){
+					var view = this._view[i];
+					var element = this._view[i]._elementList[j];
+
+					if(element.instance != this) callback(me, element, view);
+				}
+			}	
 		}
 	}
 	
@@ -107,81 +129,8 @@ class Element{
 		//es probable que el elemento esté en mas de una vista
 		// y que estas dos vistas compartan gui
 	}
-	center(){
-		if(this._x != undefined && this._y != undefined && this._width != undefined && this._height != undefined){
-			this._center = {x: this._x + (this._width/2), y: this._y + (this._height/2)};
-		}
-		return this._center;
-	}
 
-	isColor(color){
-		var result = false;
-		var temp = document.createElement('div');
-		temp.style.backgroundColor = color;
-		result = temp.style.backgroundColor ? true : false;
-		
-		temp.remove();
-		return result;
-	}
-
-	isMouseOver(){
-		if(LGuiJs._mouse.position != undefined){	
-			if(LGuiJs._mouse.position.x > this._x && LGuiJs._mouse.position.x < this._x + this._width){
-				if(LGuiJs._mouse.position.y > this._y && LGuiJs._mouse.position.y < this._y + this._height){
-					this._is_mouse_over = true;
-				}
-				else this._is_mouse_over = false;
-			}
-			else this._is_mouse_over = false;
-			//if(callback != undefined) callback(this);
-		}
-		return this._isFocus;
-	}
-
-	isClick(callback){
-		var result = false;
-		if(LGuiJs._mouse.click != undefined){
-			if(LGuiJs._mouse.click.x > this._x && LGuiJs._mouse.click.x < this._x + this._width){
-				if(LGuiJs._mouse.click.y > this._y && LGuiJs._mouse.click.y < this._y + this._height){
-					if(!this._click_flag){
-						result = true;
-						
-						this._is_last_click = true;
-						this._click_flag = true;
-
-						LGuiJs._mouse.last_click.x = LGuiJs._mouse.click.x;
-						LGuiJs._mouse.last_click.y = LGuiJs._mouse.click.y;
-					}
-				}
-				else{
-					this._click_flag = false;
-					this._is_click = false;
-				}
-			}
-			else{
-				this._click_flag = false;
-				this._is_click = false;
-			} 
-				
-		}
-		
-		return result;
-	}
-
-	addEventListener(type, callback){
-		if(type == "click"){
-			this._click_event.push(callback);
-		}
-	}
-}
-
-class Background extends Element{
-	constructor(id, params = array(), callback){
-	 	super(id, params, callback);
-		this.ClassName = "Background";
-	}
-	frameLoop(){
-		super.frameLoop();
+	draw(){
 		this.doInAllViews(function(me, ctx){
 			if(me._display){
 				if(me._image != undefined){
@@ -199,10 +148,130 @@ class Background extends Element{
 			}
 		});
 	}
+
+	center(){
+		if(this._x != undefined && this._y != undefined && this._width != undefined && this._height != undefined){
+			this._center = {x: this._x + (this._width/2), y: this._y + (this._height/2)};
+		}
+		return this._center;
+	}
+
+	isColor(color){
+		var result = false;
+		var temp = document.createElement('div');
+		temp.style.backgroundColor = color;
+		result = temp.style.backgroundColor ? true : false;
+		
+		temp.remove();
+		return result;
+	}
+
+
+	addEventListener(type, callback){
+		this._event_callback[type].push(callback);
+	}
+
+	activateEventCallbacks(type){
+		for(var i = 0; i < this._event_callback[type].length; i++) this._event_callback[type][i].apply(this, [this]);
+	}
+
+	isMouseOver(){
+		var result = false;
+		if(LGuiJs._mouse.position.x != undefined && LGuiJs._mouse.position.y){
+			if((LGuiJs._mouse.position.x > this._x && LGuiJs._mouse.position.x < this._x + this._width) 
+			&& (LGuiJs._mouse.position.y > this._y && LGuiJs._mouse.position.y < this._y + this._height)){
+			
+				if(!this._mouse_over_flag){
+					result = true;
+					this._is_mouse_over = true;
+					this._mouse_over_flag = true;
+					this.activateEventCallbacks("mouseover");
+
+					this._is_mouse_out = false;
+					this._mouse_out_flag = false;
+
+					this.doInAllPartners(function(me, element){
+						element.instance._is_mouse_over = false;
+						element.instance._is_mouse_out = true;
+						if(element["z-index"] < me["z-index"]) element.instance._mouse_over_flag = true;
+					});
+				}
+				if(this._is_mouse_out && !this._mouse_out_flag){
+					this._is_mouse_over = false;
+					this._mouse_out_flag = true;
+					this.activateEventCallbacks("mouseout");
+				}
+			}
+			else{
+				if(!this._mouse_out_flag){
+					this._is_mouse_out = true;
+					this._mouse_out_flag = true;
+
+					this._is_mouse_over = false;
+					this._mouse_over_flag = false;
+					
+					this.activateEventCallbacks("mouseout");
+
+					this.doInAllPartners(function(me, element){
+						element.instance._mouse_over_flag = false;
+						element.instance._mouse_out_flag = true;
+					});
+				}
+			}
+		}
+		return result;
+	}
+
+	isClick(callback){
+		var result = false;
+		if(LGuiJs._mouse.click != undefined){
+			if((LGuiJs._mouse.click.x > this._x && LGuiJs._mouse.click.x < this._x + this._width)
+			&& (LGuiJs._mouse.click.y > this._y && LGuiJs._mouse.click.y < this._y + this._height)){
+				if(!this._click_flag && LGuiJs._mouse.click.button == 1){
+					result = true;
+					this._is_click = true;
+					this._click_flag = true;
+					this.activateEventCallbacks("click");
+
+					this.doInAllPartners(function(me, element){
+						element.instance._is_click = false;
+					});
+
+					LGuiJs._mouse.last_click.x = LGuiJs._mouse.click.x;
+					LGuiJs._mouse.last_click.y = LGuiJs._mouse.click.y;
+					LGuiJs._mouse.click.x = undefined;
+					LGuiJs._mouse.click.y = undefined;
+				}
+			}
+			else{
+				this._click_flag = false;
+			} 	
+		}
+		return result;
+	}
+
+	setView(view){
+		if(view != undefined) this._view.push(view);
+	}
+
+	static getElement(name = ""){
+		return Element._elementList[name];
+	}
+}
+
+class Background extends Element{
+
+	constructor(id, params = array(), callback){
+	 	super(id, params, callback);
+		this.ClassName = "Background";
+	}
+
+	draw(){
+		super.draw();
+	}
 }
 
 class Button extends Element{
-
 
 	constructor(id, params = array(), callback){
 	 	super(id, params, callback);
@@ -210,26 +279,9 @@ class Button extends Element{
 		this.ClassName = "Button";
 		this._cursor = "pointer";
 	}
-	frameLoop(){
-		super.frameLoop();
-		this.isMouseOver();
-				
-		this.doInAllViews(function(me, ctx){
-			if(me._display){
-				if(me._image != undefined){
-					if(me._width == undefined) me._width = me._image.width;
-					if(me._height == undefined) me._height = me._image.height;
-					ctx.drawImage(me._image, me._sx, me._sy, me._sWidth, me._sHeight, me._x, me._y, me._width, me._height);					
-					ctx.save();
-				}
-				else if(me._background_color != undefined){
-					ctx.save();
-					ctx.fillStyle = me._background_color;
-					ctx.fillRect(me._x, me._y, me._width, me._height); 
-					ctx.restore();
-				}
-			}
-		});
+
+	draw(){
+		super.draw();
 	}
 }
 
@@ -238,9 +290,10 @@ class Text extends Element{
 	_text;
 	_text_color;
 	_font;
-	_size;
+	_font_size;
 	_text_align;
 	_value;
+
 	constructor(id, params = array(), callback){
 	 	super(id, params, callback);
 		this.ClassName = "Text";
@@ -252,12 +305,15 @@ class Text extends Element{
 	 	if(this._value == undefined) this._value = this._text;
 	 	this._text_color = params["text-color"];
 	 	this._font = params["font"];
-	 	this._size = params["size"];
+	 	this._font_size = params["font-size"];
 	 	this._text_align = params["text-align"];
-	}
 	
-	frameLoop(){
-		super.frameLoop();
+	 	this._width = params["width"];
+	 	this._height = params["height"];
+	}
+
+	draw(){
+		super.draw();
 		if(this._text != undefined && this.ClassName == "Text") this.drawText(this._x, this._y, this._text_align, this._text);
 	}
 
@@ -268,13 +324,21 @@ class Text extends Element{
 	drawText(x, y, align, text){
 		this.doInAllViews(function(me, ctx){
 			ctx.save();
-			ctx.font = me._size + "px " + me._font;
-			ctx.fillStyle = me._text_color;
+
 			ctx.textAlign = align;
-			ctx.fillText(text, x, y); 
+			ctx.strokeStyle = 'red';
+			ctx.font = me._font_size + "px " + me._font;
+			ctx.fillStyle = me._text_color;
+
+			var metrics = ctx.measureText(text);
+			if(me._width == undefined) me._width = metrics.width;
+			if(me._height == undefined) me._height = (me._y + metrics.actualBoundingBoxDescent) - (me._y - metrics.actualBoundingBoxAscent);
+
+ 			ctx.fillText(text, x, y + metrics.actualBoundingBoxAscent);			      	 
 			ctx.restore();
 		});
 	}
+
 	getValue(){
 		var result = (this._value != undefined) ? this._value : ""; 
 		return result;
@@ -320,11 +384,8 @@ class Input extends Text{
 	 	}
 	}
 
-	frameLoop(){
-		super.frameLoop();
-		this.isMouseOver();
-	
-		this.doInAllViews(function(me, ctx){
+	draw(){
+			this.doInAllViews(function(me, ctx){
 			ctx.save();
 			ctx.beginPath();
 			ctx.moveTo(me._x, me._y + me._radius);
@@ -353,8 +414,7 @@ class Input extends Text{
 				if(me._text == undefined) text = me._default_text;
 				else text = me._text;
 				
-
-				if(me._is_last_click){
+				if(me._is_click){
 					text = me._text;
 					me._background_color = "rgba(80,155,160,1)";
 				}
@@ -366,8 +426,7 @@ class Input extends Text{
 				if(text == undefined) text = "|";
 			}
 
-
-			if(LGuiJs._last_key.time != undefined && me._is_last_click && me._last_time_added_key < LGuiJs._last_key.time){
+			if(LGuiJs._last_key.time != undefined && me._is_click && me._last_time_added_key < LGuiJs._last_key.time){
 
 				
 				if(me._text == undefined) me._text = "";
@@ -402,11 +461,30 @@ class Input extends Text{
 				me._stack_key_flag = false;	
 				
 			}
-			if(me._text_align === "center") me.drawText(me.center().x, (me.center().y + (me._size/4)), me._text_align, text, text);
-			if(me._text_align === "left") me.drawText(me._x + me._margin_left + me._border_size, me.center().y, me._text_align, text);
-			if(me._text_align === "right") me.drawText(me._x + me._width - me._margin_right - me._border_size, me.center().y, me._text_align, text);
+			if(me._text_align === "center") me.drawText(me.center().x, (me.center().y - (me._font_size/2)), me._text_align, text, text);
+			if(me._text_align === "left") me.drawText(me._x + me._margin_left + me._border_size, (me.center().y - (me._font_size/2)), me._text_align, text);
+			if(me._text_align === "right") me.drawText(me._x + me._width - me._margin_right - me._border_size, (me.center().y - (me._font_size/2)), me._text_align, text);
 
 			ctx.restore();
 		});
 	}
 }
+
+/*
+class Container extends Element{
+	_child = [];
+	constructor(id, params = array(), callback){
+	 	super(id, params, callback);
+
+//		this.ClassName = "Button";
+//		this._cursor = "pointer";
+	}
+	frameLoop(){
+		super.frameLoop();
+		
+		for(var i = 0; i < this._child.length; i++){
+			this._child[i].frameLoop();
+		}
+	}
+}
+*/
